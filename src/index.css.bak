@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* ΓöÇΓöÇΓöÇ RESET & BASE ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 *,
@@ -1191,6 +1191,85 @@ body,
   animation: spin 0.8s linear infinite;
 }
 
+/* Result */
+.absen-result {
+  width: 100%;
+  padding: 1.5rem;
+  border-radius: var(--r-lg);
+  text-align: center;
+  animation: fadeUp 0.4s ease;
+}
+
+.result-sukses {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.result-tolak {
+  background: var(--red-bg);
+  color: var(--red);
+}
+
+.absen-result h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 8px 0 4px;
+}
+
+.absen-result p {
+  font-size: 0.84rem;
+  opacity: 0.9;
+}
+
+.result-loc {
+  font-size: 0.75rem !important;
+  opacity: 0.7 !important;
+  margin-top: 4px;
+}
+
+.btn-reset {
+  margin-top: 12px;
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--r-md);
+  color: inherit;
+  font-weight: 600;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+
+.btn-reset:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.location-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.dist-badge {
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-weight: 600;
+  font-size: 0.72rem;
+}
+
+.dist-ok {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.dist-far {
+  background: var(--red-bg);
+  color: var(--red);
+}
 
 /* Log Absensi */
 .log-list {
@@ -2432,607 +2511,4 @@ body,
 
 .spin {
   animation: spin 0.8s linear infinite;
-}
-
-
-/* Settings page styles are in settings.css - imported via Pengaturan.jsx */
-
-/* ═══════════════════════════════════════════════════════════════════════
-   ABSENSI RESULT STATES — sukses / ditolak / duplikat / geo_error
-   ═══════════════════════════════════════════════════════════════════════ */
-
-/* ── Base result card ────────────────────────────────────────────────── */
-.absen-result {
-  margin-top: 1.25rem;
-  padding: 1.75rem 1.5rem;
-  border-radius: var(--r-lg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  text-align: center;
-  animation: resultFadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes resultFadeIn {
-  from { opacity: 0; transform: translateY(16px) scale(0.96); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.absen-result h3 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.absen-result p {
-  font-size: 0.85rem;
-  opacity: 0.85;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.result-loc {
-  font-size: 0.78rem !important;
-  opacity: 0.65 !important;
-}
-
-/* ── SUKSES ──────────────────────────────────────────────────────────── */
-.result-sukses {
-  background: linear-gradient(145deg, rgba(34,197,94,0.12), rgba(34,197,94,0.06));
-  border: 1px solid rgba(34,197,94,0.3);
-  color: var(--green);
-  box-shadow: 0 0 32px rgba(34,197,94,0.12), inset 0 1px 0 rgba(34,197,94,0.15);
-}
-
-.result-sukses svg:first-child {
-  filter: drop-shadow(0 0 12px rgba(34,197,94,0.6));
-  animation: pulse-green 2s ease-in-out infinite;
-}
-
-@keyframes pulse-green {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(34,197,94,0.5)); }
-  50%       { filter: drop-shadow(0 0 20px rgba(34,197,94,0.9)); }
-}
-
-/* ── DITOLAK (di luar radius) ────────────────────────────────────────── */
-.result-tolak {
-  background: linear-gradient(145deg, rgba(239,68,68,0.12), rgba(239,68,68,0.06));
-  border: 1px solid rgba(239,68,68,0.3);
-  color: var(--red);
-  box-shadow: 0 0 32px rgba(239,68,68,0.1), inset 0 1px 0 rgba(239,68,68,0.12);
-}
-
-.result-tolak svg:first-child {
-  filter: drop-shadow(0 0 12px rgba(239,68,68,0.5));
-  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-}
-
-@keyframes shake {
-  10%, 90%  { transform: translateX(-2px) rotate(-2deg); }
-  20%, 80%  { transform: translateX(3px) rotate(2deg); }
-  30%, 50%, 70% { transform: translateX(-4px) rotate(-3deg); }
-  40%, 60%  { transform: translateX(4px) rotate(3deg); }
-  100%      { transform: translateX(0) rotate(0); }
-}
-
-/* ── DUPLIKAT ────────────────────────────────────────────────────────── */
-.result-duplikat {
-  background: linear-gradient(145deg, rgba(59,130,246,0.12), rgba(59,130,246,0.06));
-  border: 1px solid rgba(59,130,246,0.3);
-  color: var(--brand);
-  box-shadow: 0 0 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(59,130,246,0.12);
-}
-
-.result-duplikat svg:first-child {
-  filter: drop-shadow(0 0 10px rgba(59,130,246,0.5));
-}
-
-/* ── GEO ERROR (GPS error / Fake GPS / akurasi buruk) ───────────────── */
-.result-geo-error {
-  background: linear-gradient(145deg, rgba(245,158,11,0.12), rgba(245,158,11,0.05));
-  border: 1px solid rgba(245,158,11,0.35);
-  color: var(--yellow);
-  box-shadow: 0 0 32px rgba(245,158,11,0.1), inset 0 1px 0 rgba(245,158,11,0.12);
-  align-items: flex-start;
-  text-align: left;
-}
-
-.result-geo-error > svg:first-child {
-  align-self: center;
-  filter: drop-shadow(0 0 12px rgba(245,158,11,0.6));
-  animation: pulse-yellow 1.8s ease-in-out infinite;
-}
-
-@keyframes pulse-yellow {
-  0%, 100% { filter: drop-shadow(0 0 8px rgba(245,158,11,0.5)); }
-  50%       { filter: drop-shadow(0 0 18px rgba(245,158,11,0.9)); opacity: 0.85; }
-}
-
-.result-geo-error h3 {
-  align-self: center;
-}
-
-.result-geo-error > p {
-  align-self: center;
-  color: rgba(245,158,11,0.9);
-  font-size: 0.82rem !important;
-  background: rgba(245,158,11,0.08);
-  border: 1px solid rgba(245,158,11,0.2);
-  border-radius: var(--r-md);
-  padding: 8px 14px;
-  width: 100%;
-  text-align: center;
-}
-
-/* Tips list */
-.geo-tips {
-  list-style: none;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 4px 0;
-}
-
-.geo-tips li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 0.8rem;
-  color: rgba(245,158,11,0.85);
-  background: rgba(245,158,11,0.06);
-  border: 1px solid rgba(245,158,11,0.15);
-  border-radius: var(--r-sm);
-  padding: 9px 12px;
-  line-height: 1.4;
-  transition: background var(--transition);
-}
-
-.geo-tips li::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--yellow);
-  margin-top: 5px;
-  flex-shrink: 0;
-  box-shadow: 0 0 6px rgba(245,158,11,0.7);
-}
-
-.geo-tips li:hover {
-  background: rgba(245,158,11,0.1);
-}
-
-/* ── Reset / CTA button ──────────────────────────────────────────────── */
-.btn-reset {
-  margin-top: 6px;
-  padding: 10px 28px;
-  border-radius: var(--r-md);
-  border: 1.5px solid currentColor;
-  background: transparent;
-  color: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--transition);
-  opacity: 0.85;
-  letter-spacing: 0.02em;
-}
-
-.btn-reset:hover {
-  opacity: 1;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-}
-
-/* ── Accuracy badge ──────────────────────────────────────────────────── */
-.accuracy-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 99px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  background: rgba(59,130,246,0.12);
-  color: var(--brand);
-  border: 1px solid rgba(59,130,246,0.25);
-}
-
-/* ── Distance badge ──────────────────────────────────────────────────── */
-.dist-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 99px;
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.dist-ok {
-  background: rgba(34,197,94,0.12);
-  color: var(--green);
-  border: 1px solid rgba(34,197,94,0.25);
-}
-
-.dist-far {
-  background: rgba(239,68,68,0.12);
-  color: var(--red);
-  border: 1px solid rgba(239,68,68,0.25);
-}
-
-/* ════════════════════════════════════════════════════════════
-   FACE CAPTURE COMPONENT
-   ════════════════════════════════════════════════════════════ */
-
-/* Overlay */
-.face-capture-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  animation: fadeIn 0.2s ease;
-}
-
-/* Modal container */
-.face-capture-modal {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  width: 100%;
-  max-width: 520px;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  padding: 1.5rem;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
-  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes slideUp {
-  from { transform: translateY(24px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-
-/* Header */
-.face-capture-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.face-icon-header {
-  color: var(--brand);
-  flex-shrink: 0;
-}
-
-.face-capture-header h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 0 0 2px 0;
-}
-
-.face-capture-header p {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-/* Video wrap */
-.face-video-wrap {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4/3;
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  background: var(--bg-base);
-  border: 1px solid var(--border);
-}
-
-.face-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.face-preview-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Face frame guide (corner brackets) */
-.face-frame-guide {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.face-guide-corner {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  border-color: rgba(59, 130, 246, 0.5);
-  border-style: solid;
-  transition: border-color 0.4s ease;
-}
-
-.face-frame-guide.face-detected .face-guide-corner {
-  border-color: rgba(34, 197, 94, 0.8);
-}
-
-.face-guide-corner.tl {
-  top: 20px; left: 20px;
-  border-width: 3px 0 0 3px;
-  border-radius: 4px 0 0 0;
-}
-.face-guide-corner.tr {
-  top: 20px; right: 20px;
-  border-width: 3px 3px 0 0;
-  border-radius: 0 4px 0 0;
-}
-.face-guide-corner.bl {
-  bottom: 20px; left: 20px;
-  border-width: 0 0 3px 3px;
-  border-radius: 0 0 0 4px;
-}
-.face-guide-corner.br {
-  bottom: 20px; right: 20px;
-  border-width: 0 3px 3px 0;
-  border-radius: 0 0 4px 0;
-}
-
-/* Countdown overlay */
-.face-countdown {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.55);
-}
-
-.face-countdown span {
-  font-size: 6rem;
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 4px 24px rgba(0,0,0,0.6);
-  animation: countPulse 1s ease;
-}
-
-@keyframes countPulse {
-  0%   { transform: scale(1.4); opacity: 0.6; }
-  100% { transform: scale(1);   opacity: 1; }
-}
-
-/* Detected badge */
-.face-detected-badge {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 14px;
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid rgba(34, 197, 94, 0.4);
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--green);
-  backdrop-filter: blur(6px);
-  animation: fadeIn 0.3s ease;
-}
-
-/* Error state inside video wrap */
-.face-error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  height: 100%;
-  color: var(--text-muted);
-  padding: 2rem;
-  text-align: center;
-}
-
-.face-error-state p {
-  font-size: 0.84rem;
-  color: var(--text-secondary);
-}
-
-/* Tips */
-.face-tip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  background: var(--bg-base);
-  padding: 8px 14px;
-  border-radius: var(--r-md);
-}
-
-.face-tip-ok {
-  color: var(--green);
-  background: var(--green-bg);
-}
-
-/* Action buttons row */
-.face-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.btn-face-cancel {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 18px;
-  background: var(--bg-base);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  border-radius: var(--r-md);
-  font-size: 0.84rem;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--transition);
-}
-
-.btn-face-cancel:hover {
-  border-color: var(--red);
-  color: var(--red);
-}
-
-.btn-face-capture {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 22px;
-  background: linear-gradient(135deg, var(--brand), var(--purple));
-  color: #fff;
-  border: none;
-  border-radius: var(--r-md);
-  font-size: 0.9rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--transition);
-  box-shadow: 0 4px 14px rgba(59,130,246,0.35);
-}
-
-.btn-face-capture:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59,130,246,0.45);
-}
-
-.btn-face-capture:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-face-retry {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 18px;
-  background: var(--bg-base);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  border-radius: var(--r-md);
-  font-size: 0.84rem;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--transition);
-}
-
-.btn-face-retry:hover {
-  border-color: var(--brand);
-  color: var(--brand);
-}
-
-.btn-face-confirm {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 22px;
-  background: linear-gradient(135deg, var(--green), #16a34a);
-  color: #fff;
-  border: none;
-  border-radius: var(--r-md);
-  font-size: 0.9rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--transition);
-  box-shadow: 0 4px 14px rgba(34,197,94,0.3);
-}
-
-.btn-face-confirm:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(34,197,94,0.4);
-}
-
-/* ── Requirement badge (di clock card) ───────────────────── */
-.face-requirement-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  font-size: 0.76rem;
-  font-weight: 500;
-  color: var(--brand);
-  background: var(--blue-bg);
-  border: 1px solid rgba(59,130,246,0.25);
-  border-radius: 99px;
-}
-
-/* ── Thumbnail foto wajah di step bar ────────────────────── */
-.face-captured-preview {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 14px;
-  background: var(--green-bg);
-  border: 1px solid rgba(34,197,94,0.3);
-  border-radius: var(--r-md);
-  width: 100%;
-}
-
-.face-captured-preview img {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--r-md);
-  object-fit: cover;
-  border: 2px solid rgba(34,197,94,0.4);
-  flex-shrink: 0;
-}
-
-.face-captured-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.78rem;
-  color: var(--green);
-  font-weight: 500;
-}
-
-/* ── Foto wajah di hasil sukses ──────────────────────────── */
-.result-face-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.result-face-img {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid rgba(34,197,94,0.5);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-}
-
-.result-face-wrap span {
-  font-size: 0.75rem;
-  color: var(--green);
 }

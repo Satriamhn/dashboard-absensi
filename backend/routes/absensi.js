@@ -1,7 +1,8 @@
 const express = require('express');
-const { body, query, validationResult } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 const pool = require('../config/db');
 const { authenticate, adminOnly } = require('../middleware/auth');
+const { validateGeo } = require('../middleware/geoValidate');
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ const validate = (req, res) => {
     }
     return false;
 };
+
 
 // ─── GET /api/absensi ────────────────────────────────
 // Admin: semua absensi | Pegawai: absensi sendiri
@@ -98,18 +100,25 @@ router.get('/today', authenticate, async (req, res) => {
 
 // ─── POST /api/absensi ───────────────────────────────
 // Simpan absensi masuk (dengan validasi duplikasi & lokasi)
+// validateGeo adalah lapisan keamanan SERVER: koordinat diverifikasi ulang
+// secara independen dari frontend — ini mencegah manipulasi request body.
 router.post(
     '/',
     authenticate,
     [
-        body('latitude').notEmpty().withMessage('Latitude diperlukan'),
-        body('longitude').notEmpty().withMessage('Longitude diperlukan'),
+        body('latitude').isFloat().withMessage('Latitude harus berupa angka valid'),
+        body('longitude').isFloat().withMessage('Longitude harus berupa angka valid'),
         body('type').isIn(['masuk', 'keluar']).withMessage('Type harus masuk atau keluar'),
+        body('accuracy').isFloat({ min: 0 }).withMessage('Data akurasi GPS wajib dikirim'),
     ],
+    // ↓ Validasi express-validator dulu, baru validasi geo
+    (req, res, next) => { if (validate(req, res)) return; next(); },
+    validateGeo,   // ← lapisan keamanan server: radius + akurasi + bounds
     async (req, res) => {
-        if (validate(req, res)) return;
-
-        const { latitude, longitude, type } = req.body;
+        // Ambil koordinat DARI req.geoInfo (sudah divalidasi server),
+        // BUKAN dari req.body langsung — ini mencegah bypass via manipulasi body.
+        const { latitude, longitude } = req.geoInfo;
+        const { type } = req.body;
         const userId = req.user.id_user;
         const today = new Date().toISOString().slice(0, 10);
         const now = new Date().toTimeString().slice(0, 8); // HH:MM:SS
@@ -151,6 +160,10 @@ router.post(
                     success: true,
                     message: `Absensi berhasil! Status: ${status}`,
                     data: newRow[0],
+                    geo: {
+                        distance_meter: req.geoInfo.distance_meter,
+                        accuracy      : req.geoInfo.accuracy,
+                    },
                 });
             }
 
@@ -172,7 +185,15 @@ router.post(
                     [userId, today]
                 );
 
-                return res.json({ success: true, message: 'Absen keluar berhasil!', data: updated[0] });
+                return res.json({
+                    success: true,
+                    message: 'Absen keluar berhasil!',
+                    data: updated[0],
+                    geo: {
+                        distance_meter: req.geoInfo.distance_meter,
+                        accuracy      : req.geoInfo.accuracy,
+                    },
+                });
             }
         } catch (err) {
             console.error('[ABSENSI POST]', err);
@@ -180,6 +201,7 @@ router.post(
         }
     }
 );
+
 
 // ─── GET /api/absensi/summary ────────────────────────
 // Rekap statistik hari ini (untuk dashboard admin)

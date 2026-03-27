@@ -8,6 +8,9 @@ const absensiRoutes = require('./routes/absensi');
 const izinRoutes = require('./routes/izin');
 const usersRoutes = require('./routes/users');
 const laporanRoutes = require('./routes/laporan');
+const settingsRoutes = require('./routes/settings');
+const faceRoutes = require('./routes/face');
+const initDB = require('./config/initDB');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -38,6 +41,8 @@ app.use('/api/absensi', absensiRoutes);
 app.use('/api/izin', izinRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/laporan', laporanRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/face', faceRoutes);
 
 // ─── Health Check ─────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -66,7 +71,8 @@ app.use((err, _req, res, _next) => {
 });
 
 // ─── Start Server ─────────────────────────────────────
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+    await initDB(); // buat tabel settings jika belum ada
     console.log('');
     console.log('╔══════════════════════════════════════╗');
     console.log('║       AbsensiPro API Server          ║');

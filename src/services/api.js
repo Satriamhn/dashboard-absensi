@@ -52,16 +52,26 @@ export const absensiAPI = {
 
     getSummary: () => fetcher('/absensi/summary'),
 
-    clockIn: (latitude, longitude) =>
+    clockIn: (latitude, longitude, accuracy = null) =>
         fetcher('/absensi', {
             method: 'POST',
-            body: JSON.stringify({ type: 'masuk', latitude: String(latitude), longitude: String(longitude) }),
+            body: JSON.stringify({
+                type: 'masuk',
+                latitude : Number(latitude),
+                longitude: Number(longitude),
+                ...(accuracy != null ? { accuracy: Number(accuracy) } : {}),
+            }),
         }),
 
-    clockOut: (latitude, longitude) =>
+    clockOut: (latitude, longitude, accuracy = null) =>
         fetcher('/absensi', {
             method: 'POST',
-            body: JSON.stringify({ type: 'keluar', latitude: String(latitude), longitude: String(longitude) }),
+            body: JSON.stringify({
+                type: 'keluar',
+                latitude : Number(latitude),
+                longitude: Number(longitude),
+                ...(accuracy != null ? { accuracy: Number(accuracy) } : {}),
+            }),
         }),
 };
 
@@ -117,4 +127,27 @@ export const laporanAPI = {
     },
 };
 
-export default { authAPI, absensiAPI, izinAPI, usersAPI, laporanAPI };
+// ─── SETTINGS ─────────────────────────────────────────
+export const settingsAPI = {
+    get: () => fetcher('/settings'),
+    update: (data) =>
+        fetcher('/settings', { method: 'PUT', body: JSON.stringify(data) }),
+};
+
+// ─── FACE / KIRIM WAJAH ───────────────────────────────
+export const faceAPI = {
+    kirim: (fotoBase64, tipe, absensiId = null, keterangan = null) =>
+        fetcher('/face/kirim', {
+            method: 'POST',
+            body: JSON.stringify({ foto_base64: fotoBase64, tipe, absensi_id: absensiId, keterangan }),
+        }),
+
+    riwayat: (params = {}) => {
+        const qs = new URLSearchParams(params).toString();
+        return fetcher(`/face/riwayat${qs ? '?' + qs : ''}`);
+    },
+
+    getFoto: (id) => fetcher(`/face/${id}/foto`),
+};
+
+export default { authAPI, absensiAPI, izinAPI, usersAPI, laporanAPI, settingsAPI, faceAPI };

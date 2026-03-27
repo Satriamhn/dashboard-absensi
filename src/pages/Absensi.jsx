@@ -1,19 +1,22 @@
 import { useState, useEffect } from 'react';
 import {
     MapPin, Clock, CheckCircle2, XCircle, AlertTriangle,
-    Navigation, Loader2, LogIn, LogOut, Info
+    Navigation, Loader2, LogIn, LogOut, Info, ShieldAlert, Camera
 } from 'lucide-react';
 import Layout from '../components/Layout';
+import FaceCapture from '../components/FaceCapture';
 import { useAuth } from '../context/AuthContext';
-import { absensiAPI } from '../services/api';
+import { useSettings } from '../context/SettingsContext';
+import { absensiAPI, faceAPI } from '../services/api';
 
-// Koordinat kantor (bisa pindah ke .env atau setting admin nanti)
-const OFFICE_LOCATION = {
-    nama: 'Kantor Pusat Jakarta',
-    latitude: -6.200000,
-    longitude: 106.816666,
-    radius: 100, // meter
+// Kode error geolokasi
+const GEO_ERRORS = {
+    1: 'Izin lokasi ditolak. Aktifkan izin lokasi di browser Anda.',
+    2: 'GPS tidak tersedia. Aktifkan GPS / Location Service perangkat Anda.',
+    3: 'Waktu habis saat mengambil lokasi. Pastikan GPS aktif dan sinyal stabil.',
 };
+
+const MAX_ACCURACY_METERS = 150;
 
 function getDistanceMeters(lat1, lon1, lat2, lon2) {
     const R = 6371000;
@@ -27,22 +30,38 @@ function getDistanceMeters(lat1, lon1, lat2, lon2) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-const STEPS = ['Cek Riwayat', 'Ambil Lokasi', 'Validasi Radius', 'Simpan Kehadiran', 'Selesai'];
+const STEPS = ['Cek Riwayat', 'Verifikasi Wajah', 'Ambil Lokasi', 'Validasi Radius', 'Simpan Kehadiran', 'Selesai'];
 
 export default function Absensi() {
     const { user } = useAuth();
+    const { settings } = useSettings();
+
+    const OFFICE_LOCATION = {
+        nama     : settings.office_name      || 'Kantor Pusat',
+        latitude : parseFloat(settings.office_latitude)  || -6.200000,
+        longitude: parseFloat(settings.office_longitude) || 106.816666,
+        radius   : parseInt(settings.office_radius)      || 100,
+    };
+
     const [step, setStep] = useState(-1);
     const [location, setLocation] = useState(null);
     const [distance, setDistance] = useState(null);
     const [inRadius, setInRadius] = useState(null);
     const [status, setStatus] = useState(null);
+    const [geoError, setGeoError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [time, setTime] = useState(new Date());
     const [absenType, setAbsenType] = useState('masuk');
-    const [todayData, setTodayData] = useState(null);  // data absensi hari ini dari API
+    const [todayData, setTodayData] = useState(null);
     const [loadingToday, setLoadingToday] = useState(true);
-    const [savedStatus, setSavedStatus] = useState('Hadir'); // status yang disimpan ke DB
+    const [savedStatus, setSavedStatus] = useState('Hadir');
     const [history, setHistory] = useState([]);
+
+    // ── State khusus face capture ──────────────────────────
+    const [showFaceCapture, setShowFaceCapture] = useState(false);
+    const [capturedFace, setCapturedFace] = useState(null);
+    const [faceStatus, setFaceStatus] = useState(null); // null | 'ok' | 'skip' | 'gagal'
+    const [faceSavedId, setFaceSavedId] = useState(null); // id dalam tabel kirim_wajah
 
     // ── Clock ─────────────────────────────────────────────
     useEffect(() => {
@@ -61,7 +80,6 @@ export default function Absensi() {
             const res = await absensiAPI.getToday();
             setTodayData(res.data);
             if (res.data) {
-                // Build history dari data real
                 const h = [];
                 if (res.data.jam_masuk) h.push({ type: 'masuk', jam: res.data.jam_masuk, tanggal: res.data.tanggal, status: res.data.status });
                 if (res.data.jam_keluar) h.push({ type: 'keluar', jam: res.data.jam_keluar, tanggal: res.data.tanggal, status: res.data.status });
@@ -79,80 +97,157 @@ export default function Absensi() {
     const alreadyClockedIn = todayData?.jam_masuk != null;
     const alreadyClockedOut = todayData?.jam_keluar != null;
 
+    // ── Kirim foto wajah ke backend ────────────────────────
+    const kirimFotoWajah = async (base64, tipe, absensiId = null) => {
+        try {
+            const res = await faceAPI.kirim(base64, tipe, absensiId);
+            setFaceSavedId(res.data?.id || null);
+            return res.data?.id || null;
+        } catch (err) {
+            console.warn('[FACE] Gagal kirim foto wajah:', err.message);
+            return null;
+        }
+    };
+
+    // ── Handler saat foto wajah diambil ───────────────────
+    const handleFaceCaptured = async (base64) => {
+        setCapturedFace(base64);
+        setFaceStatus('ok');
+        setShowFaceCapture(false);
+
+        // Langsung kirim dulu ke backend (tanpa absensi_id, akan diupdate nanti)
+        await kirimFotoWajah(base64, absenType, null);
+
+        // Lanjutkan proses absensi
+        continueAbsensi(base64);
+    };
+
     // ── Mulai proses absensi ──────────────────────────────
     const startAbsensi = async () => {
         setStep(0);
         setStatus(null);
+        setGeoError(null);
         setLoading(true);
+        setCapturedFace(null);
+        setFaceStatus(null);
 
-        // ─── Step 0: Cek Riwayat (Sequence Diagram ②) ────
+        // ─── Step 0: Cek Riwayat ─────────────────────────
         await new Promise(r => setTimeout(r, 700));
 
         const isDuplikat = (absenType === 'masuk' && alreadyClockedIn) ||
             (absenType === 'keluar' && alreadyClockedOut);
 
         if (isDuplikat) {
-            setStep(4);
+            setStep(5);
             setStatus('duplikat');
             setLoading(false);
             return;
         }
 
-        // ─── Step 1: Ambil Lokasi (Geolocation API) ───────
+        setLoading(false);
+
+        // ─── Step 1: Tampilkan modal verifikasi wajah ─────
         setStep(1);
-        await new Promise(r => setTimeout(r, 600));
+        setShowFaceCapture(true);
+        // Proses dilanjutkan di handleFaceCaptured / handleFaceCancel
+    };
+
+    // ── Lanjutkan setelah foto wajah ──────────────────────
+    const continueAbsensi = async (faceBase64) => {
+        setLoading(true);
+
+        // ─── Cek: apakah browser mendukung Geolocation ────
+        if (!navigator.geolocation) {
+            setGeoError('Browser Anda tidak mendukung Geolocation API.');
+            setStep(5);
+            setStatus('geo_error');
+            setLoading(false);
+            return;
+        }
+
+        // ─── Step 2: Ambil Lokasi GPS ─────────────────────
+        setStep(2);
+        await new Promise(r => setTimeout(r, 400));
 
         let loc;
+        let accuracy;
         try {
-            // Coba ambil lokasi nyata dari browser
             const pos = await new Promise((resolve, reject) =>
-                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0,
+                })
             );
             loc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-        } catch {
-            // Demo mode: simulasi koordinat dekat kantor
-            loc = {
-                lat: OFFICE_LOCATION.latitude + (Math.random() * 0.001 - 0.0005),
-                lon: OFFICE_LOCATION.longitude + (Math.random() * 0.001 - 0.0005),
-            };
+            accuracy = pos.coords.accuracy;
+        } catch (err) {
+            const msg = GEO_ERRORS[err.code] || 'Gagal mendapatkan lokasi. Pastikan GPS aktif.';
+            setGeoError(msg);
+            setStep(5);
+            setStatus('geo_error');
+            setLoading(false);
+            return;
         }
-        setLocation(loc);
 
-        // ─── Step 2: Validasi Radius ──────────────────────
-        setStep(2);
+        // ─── Validasi Akurasi ─────────────────────────────
+        if (accuracy > MAX_ACCURACY_METERS) {
+            setGeoError(
+                `Akurasi GPS terlalu rendah (${Math.round(accuracy)}m). ` +
+                'Pindah ke area terbuka atau nonaktifkan Fake GPS.'
+            );
+            setStep(5);
+            setStatus('geo_error');
+            setLoading(false);
+            return;
+        }
+
+        setLocation({ ...loc, accuracy });
+
+        // ─── Step 3: Validasi Radius ──────────────────────
+        setStep(3);
         await new Promise(r => setTimeout(r, 700));
         const dist = Math.round(getDistanceMeters(loc.lat, loc.lon, OFFICE_LOCATION.latitude, OFFICE_LOCATION.longitude));
         const dalam = dist <= OFFICE_LOCATION.radius;
         setDistance(dist);
         setInRadius(dalam);
 
-        // ─── Step 3: Simpan ke Backend ────────────────────
-        setStep(3);
+        // ─── Step 4: Simpan ke Backend ────────────────────
+        setStep(4);
         await new Promise(r => setTimeout(r, 500));
 
         if (dalam) {
             try {
-                // Kirim ke backend API
                 const res = absenType === 'masuk'
-                    ? await absensiAPI.clockIn(loc.lat, loc.lon)
-                    : await absensiAPI.clockOut(loc.lat, loc.lon);
+                    ? await absensiAPI.clockIn(loc.lat, loc.lon, accuracy)
+                    : await absensiAPI.clockOut(loc.lat, loc.lon, accuracy);
 
-                setStep(4);
+                const absensiId = res.data?.id_absen || null;
+
+                // Update foto wajah dengan absensi_id yang baru tersimpan
+                if (faceBase64 && absensiId) {
+                    await kirimFotoWajah(faceBase64, absenType, absensiId);
+                }
+
+                setStep(5);
                 setStatus('sukses');
                 setSavedStatus(res.data?.status || 'Hadir');
-
-                // Refresh data today dari backend
                 await fetchToday();
             } catch (err) {
-                // Mungkin backend mendeteksi duplikat
-                setStep(4);
+                setStep(5);
                 setStatus(err.message.includes('sudah') ? 'duplikat' : 'ditolak');
             }
         } else {
-            setStep(4);
+            setStep(5);
             setStatus('ditolak');
         }
         setLoading(false);
+    };
+
+    // ── Batal verifikasi wajah ────────────────────────────
+    const handleFaceCancel = () => {
+        setShowFaceCapture(false);
+        reset();
     };
 
     const reset = () => {
@@ -161,6 +256,10 @@ export default function Absensi() {
         setDistance(null);
         setInRadius(null);
         setStatus(null);
+        setGeoError(null);
+        setCapturedFace(null);
+        setFaceStatus(null);
+        setFaceSavedId(null);
     };
 
     const isDisabled = (absenType === 'masuk' && alreadyClockedIn && status !== 'sukses') ||
@@ -168,6 +267,15 @@ export default function Absensi() {
 
     return (
         <Layout title="Absensi">
+            {/* Modal Face Capture */}
+            {showFaceCapture && (
+                <FaceCapture
+                    tipe={absenType}
+                    onCapture={handleFaceCaptured}
+                    onCancel={handleFaceCancel}
+                />
+            )}
+
             <div className="absensi-grid">
                 {/* Clock & Main Action */}
                 <div className="absensi-main">
@@ -201,6 +309,12 @@ export default function Absensi() {
                             <span>{OFFICE_LOCATION.nama} (radius {OFFICE_LOCATION.radius}m)</span>
                         </div>
 
+                        {/* Face verification badge */}
+                        <div className="face-requirement-badge">
+                            <Camera size={14} />
+                            <span>Verifikasi wajah diperlukan untuk absensi</span>
+                        </div>
+
                         {/* Notice jika sudah absen */}
                         {isDisabled && step === -1 && (
                             <div className="absen-notice">
@@ -215,7 +329,7 @@ export default function Absensi() {
                         {/* Main Button */}
                         {step === -1 && !isDisabled && (
                             <button className="btn-absen" onClick={startAbsensi} disabled={loadingToday}>
-                                {loadingToday ? <Loader2 size={20} className="spin" /> : <Navigation size={20} />}
+                                {loadingToday ? <Loader2 size={20} className="spin" /> : <Camera size={20} />}
                                 {loadingToday ? 'Memuat...' : `Mulai Absensi ${absenType === 'masuk' ? 'Masuk' : 'Keluar'}`}
                             </button>
                         )}
@@ -228,13 +342,23 @@ export default function Absensi() {
                                         <div className="step-circle">
                                             {i < step
                                                 ? <CheckCircle2 size={16} />
-                                                : i === step && loading
+                                                : i === step && (loading || (i === 1 && showFaceCapture))
                                                     ? <Loader2 size={16} className="spin" />
                                                     : <span>{i + 1}</span>}
                                         </div>
                                         <span className="step-label">{s}</span>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* Foto wajah yang berhasil diambil */}
+                        {capturedFace && step > 1 && (
+                            <div className="face-captured-preview">
+                                <img src={capturedFace} alt="Foto wajah" />
+                                <span className="face-captured-label">
+                                    <CheckCircle2 size={12} /> Foto wajah terverifikasi
+                                </span>
                             </div>
                         )}
 
@@ -245,6 +369,12 @@ export default function Absensi() {
                                 <h3>Absensi Berhasil!</h3>
                                 <p>Status: <strong>{savedStatus}</strong></p>
                                 <p className="result-loc">📍 {distance}m dari kantor</p>
+                                {capturedFace && (
+                                    <div className="result-face-wrap">
+                                        <img src={capturedFace} alt="Wajah" className="result-face-img" />
+                                        <span>📸 Foto wajah tersimpan</span>
+                                    </div>
+                                )}
                                 <button className="btn-reset" onClick={reset}>Selesai</button>
                             </div>
                         )}
@@ -262,8 +392,21 @@ export default function Absensi() {
                                 <Info size={48} />
                                 <h3>Sudah Absen!</h3>
                                 <p>Sistem mendeteksi kamu sudah {absenType === 'masuk' ? 'absen masuk' : 'absen keluar'} hari ini.</p>
-                                <p className="result-loc">Sesuai sequence diagram: tampilkan status yang ada</p>
                                 <button className="btn-reset" onClick={reset}>OK</button>
+                            </div>
+                        )}
+                        {status === 'geo_error' && (
+                            <div className="absen-result result-geo-error">
+                                <ShieldAlert size={48} />
+                                <h3>Lokasi Tidak Dapat Diverifikasi</h3>
+                                <p>{geoError}</p>
+                                <ul className="geo-tips">
+                                    <li>Aktifkan GPS / Location Service di pengaturan perangkat</li>
+                                    <li>Berikan izin lokasi ke browser ini</li>
+                                    <li>Pindah ke area dengan sinyal GPS lebih baik</li>
+                                    <li>Nonaktifkan aplikasi Fake GPS jika ada</li>
+                                </ul>
+                                <button className="btn-reset" onClick={reset}>Coba Lagi</button>
                             </div>
                         )}
 
@@ -272,6 +415,9 @@ export default function Absensi() {
                             <div className="location-info">
                                 <MapPin size={14} />
                                 <span>Lat: {location.lat.toFixed(6)}, Lon: {location.lon.toFixed(6)}</span>
+                                {location.accuracy && (
+                                    <span className="accuracy-badge">±{Math.round(location.accuracy)}m akurasi</span>
+                                )}
                                 {distance !== null && (
                                     <span className={`dist-badge ${inRadius ? 'dist-ok' : 'dist-far'}`}>
                                         {distance}m {inRadius ? '✓' : '✗'}
@@ -323,9 +469,10 @@ export default function Absensi() {
                                 {[
                                     ['①', 'Login & validasi user', true],
                                     ['②', 'Cek absensi hari ini', true],
-                                    ['③', 'Kirim lokasi & waktu', history.length > 0],
-                                    ['④', 'Simpan jam_masuk ke DB', history.length > 0],
-                                    ['⑤', 'Tampil "Absensi Berhasil"', status === 'sukses'],
+                                    ['③', 'Verifikasi wajah & kirim foto', faceStatus === 'ok'],
+                                    ['④', 'Kirim lokasi & waktu', history.length > 0],
+                                    ['⑤', 'Simpan jam_masuk ke DB', history.length > 0],
+                                    ['⑥', 'Tampil "Absensi Berhasil"', status === 'sukses'],
                                 ].map(([num, label, done]) => (
                                     <div key={num} className={`seq-step ${done ? 'seq-active' : ''}`}>
                                         <span className="seq-num">{num}</span>

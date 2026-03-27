@@ -3,9 +3,10 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, ClipboardCheck, FileText, History,
     Users, LogOut, Building2, ChevronRight, Menu,
-    CheckSquare, BarChart2
+    CheckSquare, BarChart2, Settings2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 
 // Role-based navigation
 const ADMIN_NAV = [
@@ -14,6 +15,7 @@ const ADMIN_NAV = [
     { to: '/validasi', icon: CheckSquare, label: 'Validasi Izin', badge: 'pending' },
     { to: '/laporan', icon: BarChart2, label: 'Laporan' },
     { to: '/pegawai', icon: Users, label: 'Kelola Pegawai' },
+    { to: '/pengaturan', icon: Settings2, label: 'Pengaturan' },
 ];
 
 const PEGAWAI_NAV = [
@@ -26,6 +28,7 @@ const PEGAWAI_NAV = [
 export default function Sidebar({ pendingCount = 0 }) {
     const [collapsed, setCollapsed] = useState(false);
     const { user, logout } = useAuth();
+    const { settings } = useSettings();
     const navigate = useNavigate();
 
     const navItems = user?.role === 'admin' ? ADMIN_NAV : PEGAWAI_NAV;
@@ -35,17 +38,20 @@ export default function Sidebar({ pendingCount = 0 }) {
         navigate('/login');
     };
 
+    // Ambil singkatan nama perusahaan untuk logo icon saat collapsed
+    const companyInitial = (settings.company_name || 'A')[0].toUpperCase();
+
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
             {/* Logo */}
             <div className="sidebar-header">
                 <div className="sidebar-logo">
                     <div className="logo-icon">
-                        <Building2 size={22} />
+                        {collapsed ? companyInitial : <Building2 size={22} />}
                     </div>
                     {!collapsed && (
                         <div className="logo-text">
-                            <span className="logo-title">AbsensiPro</span>
+                            <span className="logo-title">{settings.company_name || 'AbsensiPro'}</span>
                             <span className="logo-sub">Management System</span>
                         </div>
                     )}
