@@ -93,4 +93,62 @@ router.get('/me', authenticate, async (req, res) => {
     }
 });
 
+// ─── POST /api/auth/register ─────────────────────────
+router.post(
+    '/register',
+    [
+        body('nama').notEmpty().withMessage('Nama tidak boleh kosong'),
+        body('email').isEmail().withMessage('Format email tidak valid'),
+        body('password').isLength({ min: 6 }).withMessage('Password minimal 6 karakter'),
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ success: false, message: errors.array()[0].msg });
+        }
+
+        const { nama, email, password, jabatan_id = null, shift_id = null } = req.body;
+
+        try {
+            // Cek apakah email sudah terdaftar
+            const [existing] = await pool.query('SELECT id_user FROM users WHERE email = ?', [email]);
+            if (existing.length > 0) {
+                return res.status(409).json({ success: false, message: 'Email sudah terdaftar.' });
+            }
+
+            // Hash password
+            const hashed = await bcrypt.hash(password, 10);
+
+            // Insert user baru (role default: pegawai)
+            const [result] = await pool.query(
+                `INSERT INTO users (nama, email, password, role, jabatan_id, shift_id)
+                 VALUES (?, ?, ?, 'pegawai', ?, ?)`,
+                [nama, email, hashed, jabatan_id, shift_id]
+            );
+
+            return res.status(201).json({
+                success: true,
+                message: 'Akun berhasil dibuat! Silakan login.',
+                user_id: result.insertId,
+            });
+        } catch (err) {
+            console.error('[AUTH REGISTER]', err);
+            return res.status(500).json({ success: false, message: 'Terjadi kesalahan server.' });
+        }
+    }
+);
+
+// ─── GET /api/auth/jabatan ───────────────────────────
+// Ambil daftar jabatan & shift untuk form register (public)
+router.get('/options', async (_req, res) => {
+    try {
+        const [jabatan] = await pool.query('SELECT id_jabatan AS id, nama_jabatan AS nama FROM jabatan');
+        const [shift]   = await pool.query('SELECT id_shift AS id, nama_shift AS nama, jam_masuk, jam_keluar FROM shift');
+        return res.json({ success: true, jabatan, shift });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Gagal mengambil data.' });
+    }
+});
+
 module.exports = router;
+

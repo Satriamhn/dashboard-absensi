@@ -35,8 +35,14 @@ export const authAPI = {
     login: (email, password) =>
         fetcher('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
 
+    register: (data) =>
+        fetcher('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+
+    getOptions: () => fetcher('/auth/options'),
+
     me: () => fetcher('/auth/me'),
 };
+
 
 // ─── ABSENSI ──────────────────────────────────────────
 export const absensiAPI = {
