@@ -16,7 +16,6 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ─── Middleware Global ────────────────────────────────
-// Daftar origin yang selalu diizinkan (production + development)
 const WHITELISTED = [
     'https://absensiprofe.vercel.app',  // production Vercel
     'http://localhost:5173',             // dev Vite
@@ -25,7 +24,6 @@ const WHITELISTED = [
 
 const allowedOrigins = [
     ...WHITELISTED,
-    // Tambahan dari env var (pisahkan dengan koma jika lebih dari satu)
     ...(process.env.FRONTEND_URL
         ? process.env.FRONTEND_URL.split(',').map(o => o.trim())
         : []),
@@ -33,8 +31,9 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: (origin, callback) => {
-        // Izinkan request tanpa origin (mobile app, curl, Postman)
         if (!origin) return callback(null, true);
+        // Izinkan semua *.vercel.app (termasuk preview deployment URLs)
+        if (origin.endsWith('.vercel.app')) return callback(null, true);
         if (allowedOrigins.includes(origin)) return callback(null, true);
         console.warn(`[CORS] Origin ditolak: ${origin}`);
         callback(new Error(`CORS: origin '${origin}' tidak diizinkan`));
