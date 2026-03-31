@@ -1,5 +1,6 @@
 import Sidebar from './Sidebar';
 import Header from './Header';
+import Chatbot from './Chatbot';
 import { IZIN } from '../data/mockData';
 
 export default function Layout({ children, title }) {
@@ -14,6 +15,8 @@ export default function Layout({ children, title }) {
                     {children}
                 </main>
             </div>
+            {/* Chatbot floating — tampil di semua halaman */}
+            <Chatbot />
         </div>
     );
 }
