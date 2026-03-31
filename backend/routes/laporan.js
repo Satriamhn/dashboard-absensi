@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../config/db');
 const { authenticate, adminOnly } = require('../middleware/auth');
+const { todayWIB } = require('../utils/timezone');
 
 const router = express.Router();
 
@@ -8,7 +9,7 @@ const router = express.Router();
 // Statistik absensi hari ini
 router.get('/rekap-harian', authenticate, adminOnly, async (req, res) => {
     try {
-        const tanggal = req.query.tanggal || new Date().toISOString().slice(0, 10);
+        const tanggal = req.query.tanggal || todayWIB(); // ✅ default ke hari ini WIB
 
         const [[stats]] = await pool.query(
             `SELECT

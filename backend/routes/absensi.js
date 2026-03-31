@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const pool = require('../config/db');
 const { authenticate, adminOnly } = require('../middleware/auth');
 const { validateGeo } = require('../middleware/geoValidate');
+const { todayWIB, timeNowWIB } = require('../utils/timezone');
 
 const router = express.Router();
 
@@ -74,7 +75,7 @@ router.get('/', authenticate, async (req, res) => {
 // Cek apakah user sudah absen hari ini (Sequence Diagram step ②)
 router.get('/today', authenticate, async (req, res) => {
     try {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = todayWIB(); // ✅ selalu WIB, bukan UTC
         const userId = req.user.role === 'admin'
             ? (req.query.user_id || req.user.id_user)
             : req.user.id_user;
@@ -120,8 +121,8 @@ router.post(
         const { latitude, longitude } = req.geoInfo;
         const { type } = req.body;
         const userId = req.user.id_user;
-        const today = new Date().toISOString().slice(0, 10);
-        const now = new Date().toTimeString().slice(0, 8); // HH:MM:SS
+        const today = todayWIB();    // ✅ tanggal WIB
+        const now   = timeNowWIB(); // ✅ jam WIB (HH:MM:SS)
 
         try {
             // ── Sequence Diagram: Cek absensi hari ini ──
@@ -207,7 +208,7 @@ router.post(
 // Rekap statistik hari ini (untuk dashboard admin)
 router.get('/summary', authenticate, adminOnly, async (req, res) => {
     try {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = todayWIB(); // ✅ selalu WIB, bukan UTC
 
         const [[stats]] = await pool.query(
             `SELECT
