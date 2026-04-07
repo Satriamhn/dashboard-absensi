@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
+import { useNotifications } from '../context/NotificationContext';
 
 // Role-based navigation
 const ADMIN_NAV = [
@@ -25,11 +26,14 @@ const PEGAWAI_NAV = [
     { to: '/riwayat', icon: History, label: 'Riwayat Saya' },
 ];
 
-export default function Sidebar({ pendingCount = 0 }) {
+export default function Sidebar() {
     const [collapsed, setCollapsed] = useState(false);
     const { user, logout } = useAuth();
     const { settings } = useSettings();
+    const { unreadCount } = useNotifications();
     const navigate = useNavigate();
+    // Untuk admin: badge Validasi Izin = jumlah notif pending
+    const pendingCount = user?.role === 'admin' ? unreadCount : 0;
 
     const navItems = user?.role === 'admin' ? ADMIN_NAV : PEGAWAI_NAV;
 
@@ -64,7 +68,13 @@ export default function Sidebar({ pendingCount = 0 }) {
             {/* User Profile */}
             {!collapsed && (
                 <div className="sidebar-profile">
-                    <div className="profile-avatar">{user?.avatar || 'U'}</div>
+                    <div className="profile-avatar">
+                        {user?.avatar && user.avatar.startsWith('data:') ? (
+                            <img src={user.avatar} alt="A" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                            user?.avatar || (user?.nama ? user.nama[0].toUpperCase() : 'U')
+                        )}
+                    </div>
                     <div className="profile-info">
                         <span className="profile-name">{user?.nama}</span>
                         <span className={`profile-role role-${user?.role}`}>

@@ -136,7 +136,6 @@ router.post(
 router.put(
     '/:id',
     authenticate,
-    adminOnly,
     [
         body('nama').optional().notEmpty(),
         body('email').optional().isEmail(),
@@ -148,7 +147,19 @@ router.put(
         if (!errors.isEmpty()) return res.status(400).json({ success: false, errors: errors.array() });
 
         const { id } = req.params;
-        const { nama, email, password, role, jabatan_id, shift_id } = req.body;
+        let { nama, email, password, role, jabatan_id, shift_id, avatar, telepon } = req.body;
+
+        // Authorization Check
+        if (req.user.role !== 'admin' && req.user.id_user !== Number(id)) {
+            return res.status(403).json({ success: false, message: 'Akses ditolak.' });
+        }
+
+        // Prevent non-admin from changing critical fields
+        if (req.user.role !== 'admin') {
+            role = undefined;
+            jabatan_id = undefined;
+            shift_id = undefined;
+        }
 
         try {
             const [existing] = await pool.query('SELECT * FROM users WHERE id_user = ?', [id]);
@@ -167,6 +178,8 @@ router.put(
             if (role) { updates.push('role = ?'); values.push(role); }
             if (jabatan_id) { updates.push('jabatan_id = ?'); values.push(jabatan_id); }
             if (shift_id) { updates.push('shift_id = ?'); values.push(shift_id); }
+            if (avatar) { updates.push('avatar = ?'); values.push(avatar); }
+            if (telepon !== undefined) { updates.push('telepon = ?'); values.push(telepon || null); }
             if (password) {
                 const hashed = await bcrypt.hash(password, 10);
                 updates.push('password = ?');

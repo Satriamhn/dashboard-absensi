@@ -3489,3 +3489,297 @@ body,
     right: 16px;
   }
 }
+
+/* ================================================
+   DARK MODE — CSS Variables Override
+   Aktif saat <html class="dark"> ditambahkan oleh ThemeContext
+   ================================================ */
+:root {
+  --header-bg: #151e35;
+  --header-border: rgba(255,255,255,0.06);
+  --card-bg: #1a2236;
+  --body-bg: #0a0f1e;
+  --text-primary: #e8ecf4;
+  --text-secondary: #8899b4;
+  --icon-btn-bg: rgba(255,255,255,0.06);
+  --icon-btn-hover: rgba(255,255,255,0.12);
+  --icon-btn-color: #94a3c4;
+  --notif-panel-bg: #1a2236;
+  --notif-panel-border: rgba(255,255,255,0.08);
+  --notif-item-hover: rgba(255,255,255,0.05);
+  --notif-item-border: rgba(255,255,255,0.06);
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html:not(.dark) {
+  --header-bg: #ffffff;
+  --header-border: rgba(0,0,0,0.08);
+  --card-bg: #f8fafc;
+  --body-bg: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --icon-btn-bg: rgba(0,0,0,0.05);
+  --icon-btn-hover: rgba(0,0,0,0.10);
+  --icon-btn-color: #64748b;
+  --notif-panel-bg: #ffffff;
+  --notif-panel-border: rgba(0,0,0,0.10);
+  --notif-item-hover: rgba(0,0,0,0.04);
+  --notif-item-border: rgba(0,0,0,0.06);
+  color-scheme: light;
+}
+
+/* Apply background transition */
+body, .layout, .layout-main, .layout-content {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html:not(.dark) body {
+  background-color: var(--body-bg);
+  color: var(--text-primary);
+}
+
+html:not(.dark) .header {
+  background: var(--header-bg) !important;
+  border-bottom-color: var(--header-border) !important;
+}
+
+html:not(.dark) .header-title,
+html:not(.dark) .clock-time {
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) .header-date,
+html:not(.dark) .header-user-jabatan {
+  color: var(--text-secondary) !important;
+}
+
+html:not(.dark) .icon-btn {
+  background: var(--icon-btn-bg) !important;
+  color: var(--icon-btn-color) !important;
+}
+
+html:not(.dark) .icon-btn:hover {
+  background: var(--icon-btn-hover) !important;
+}
+
+html:not(.dark) .sidebar {
+  background: #1e293b !important;
+}
+
+html:not(.dark) .card,
+html:not(.dark) .stat-card {
+  background: #ffffff !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  color: var(--text-primary) !important;
+}
+
+html:not(.dark) .layout-content {
+  background: var(--body-bg) !important;
+}
+
+/* ================================================
+   NOTIFICATION PANEL
+   ================================================ */
+.notif-wrapper {
+  position: relative;
+}
+
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 360px;
+  max-height: 480px;
+  background: var(--notif-panel-bg, #1a2236);
+  border: 1px solid var(--notif-panel-border, rgba(255,255,255,0.08));
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 4px 20px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1000;
+  animation: notifSlideIn 0.2s ease;
+}
+
+@keyframes notifSlideIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.notif-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--notif-panel-border, rgba(255,255,255,0.08));
+}
+
+.notif-panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #e8ecf4);
+}
+
+.notif-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notif-mark-all {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 20px;
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.notif-mark-all:hover {
+  background: rgba(37, 99, 235, 0.25);
+}
+
+.notif-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary, #8899b4);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.notif-close:hover {
+  background: var(--notif-item-hover, rgba(255,255,255,0.08));
+}
+
+.notif-list {
+  overflow-y: auto;
+  flex: 1;
+  max-height: 380px;
+}
+
+.notif-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.notif-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+}
+
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 20px;
+  color: var(--text-secondary, #8899b4);
+  font-size: 13px;
+}
+
+.notif-empty-icon {
+  opacity: 0.3;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  border-bottom: 1px solid var(--notif-item-border, rgba(255,255,255,0.06));
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.notif-item:hover {
+  background: var(--notif-item-hover, rgba(255,255,255,0.05));
+}
+
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-item-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: rgba(255,255,255,0.06);
+}
+
+.notif-item.pending_izin .notif-item-icon { background: rgba(251,191,36,0.12); }
+.notif-item.approved .notif-item-icon     { background: rgba(34,197,94,0.12); }
+.notif-item.rejected .notif-item-icon     { background: rgba(239,68,68,0.12); }
+
+.notif-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #e8ecf4);
+  margin: 0 0 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notif-item-msg {
+  font-size: 12px;
+  color: var(--text-secondary, #8899b4);
+  margin: 0 0 5px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notif-item-time {
+  font-size: 11px;
+  color: var(--text-secondary, #8899b4);
+  opacity: 0.7;
+}
+
+/* Bell shake animation saat ada notif baru */
+@keyframes bellShake {
+  0%, 100% { transform: rotate(0deg); }
+  15%       { transform: rotate(14deg); }
+  30%       { transform: rotate(-12deg); }
+  45%       { transform: rotate(10deg); }
+  60%       { transform: rotate(-8deg); }
+  75%       { transform: rotate(5deg); }
+  90%       { transform: rotate(-3deg); }
+}
+
+.bell-shake {
+  animation: bellShake 1.5s ease infinite;
+  transform-origin: top center;
+}
+

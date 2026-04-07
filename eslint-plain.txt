@@ -1,0 +1,52 @@
+C:\DashboardAbsensi\src\components\FaceCapture.jsx
+81: react-hooks/immutability
+87: react-hooks/exhaustive-deps
+127: react-hooks/exhaustive-deps
+
+C:\DashboardAbsensi\src\components\Header.jsx
+61: react-hooks/purity
+
+C:\DashboardAbsensi\src\components\Sidebar.jsx
+96: no-unused-vars
+
+C:\DashboardAbsensi\src\context\AuthContext.jsx
+17: react-hooks/set-state-in-effect
+65: react-refresh/only-export-components
+
+C:\DashboardAbsensi\src\context\NotificationContext.jsx
+68: react-hooks/set-state-in-effect
+74: react-hooks/set-state-in-effect
+114: react-refresh/only-export-components
+
+C:\DashboardAbsensi\src\context\SettingsContext.jsx
+58: react-refresh/only-export-components
+
+C:\DashboardAbsensi\src\context\ThemeContext.jsx
+40: react-refresh/only-export-components
+
+C:\DashboardAbsensi\src\pages\Absensi.jsx
+36: no-unused-vars
+64: no-unused-vars
+
+C:\DashboardAbsensi\src\pages\Izin.jsx
+18: no-unused-vars
+39: react-hooks/exhaustive-deps
+
+C:\DashboardAbsensi\src\pages\Laporan.jsx
+61: react-hooks/rules-of-hooks
+
+C:\DashboardAbsensi\src\pages\Login.jsx
+41: react-hooks/exhaustive-deps
+
+C:\DashboardAbsensi\src\pages\Pegawai.jsx
+44: react-hooks/exhaustive-deps
+
+C:\DashboardAbsensi\src\pages\Riwayat.jsx
+14: no-unused-vars
+47: react-hooks/exhaustive-deps
+56: react-hooks/exhaustive-deps
+
+C:\DashboardAbsensi\src\pages\ValidasiIzin.jsx
+58: react-hooks/rules-of-hooks
+58: react-hooks/exhaustive-deps
+

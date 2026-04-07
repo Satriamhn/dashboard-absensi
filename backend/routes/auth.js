@@ -26,7 +26,7 @@ router.post(
         try {
             // Cari user berdasarkan email
             const [rows] = await pool.query(
-                `SELECT u.id_user, u.nama, u.email, u.password, u.role,
+                `SELECT u.id_user, u.nama, u.email, u.password, u.role, u.avatar, u.telepon,
                         j.nama_jabatan AS jabatan, s.nama_shift, s.jam_masuk, s.jam_keluar
                  FROM users u
                  LEFT JOIN jabatan j ON u.jabatan_id = j.id_jabatan
@@ -77,7 +77,7 @@ const { authenticate } = require('../middleware/auth');
 router.get('/me', authenticate, async (req, res) => {
     try {
         const [rows] = await pool.query(
-            `SELECT u.id_user, u.nama, u.email, u.role,
+            `SELECT u.id_user, u.nama, u.email, u.role, u.avatar, u.telepon,
                     j.nama_jabatan AS jabatan, s.nama_shift, s.jam_masuk, s.jam_keluar
              FROM users u
              LEFT JOIN jabatan j ON u.jabatan_id = j.id_jabatan

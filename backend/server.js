@@ -3,13 +3,14 @@ const express = require('express');
 const cors = require('cors');
 
 // ─── Import Routes ────────────────────────────────────
-const authRoutes = require('./routes/auth');
-const absensiRoutes = require('./routes/absensi');
-const izinRoutes = require('./routes/izin');
-const usersRoutes = require('./routes/users');
-const laporanRoutes = require('./routes/laporan');
+const authRoutes     = require('./routes/auth');
+const absensiRoutes  = require('./routes/absensi');
+const izinRoutes     = require('./routes/izin');
+const usersRoutes    = require('./routes/users');
+const laporanRoutes  = require('./routes/laporan');
 const settingsRoutes = require('./routes/settings');
-const faceRoutes = require('./routes/face');
+const faceRoutes     = require('./routes/face');
+const chatbotRoutes  = require('./routes/chatbot');
 const initDB = require('./config/initDB');
 
 const app = express();
@@ -56,13 +57,14 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // ─── Mount API Routes ─────────────────────────────────
-app.use('/api/auth', authRoutes);
-app.use('/api/absensi', absensiRoutes);
-app.use('/api/izin', izinRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/laporan', laporanRoutes);
+app.use('/api/auth',     authRoutes);
+app.use('/api/absensi',  absensiRoutes);
+app.use('/api/izin',     izinRoutes);
+app.use('/api/users',    usersRoutes);
+app.use('/api/laporan',  laporanRoutes);
 app.use('/api/settings', settingsRoutes);
-app.use('/api/face', faceRoutes);
+app.use('/api/face',     faceRoutes);
+app.use('/api/chatbot',  chatbotRoutes);
 
 // ─── Health Check ─────────────────────────────────────
 app.get('/api/health', (_req, res) => {

@@ -29,20 +29,11 @@ export default function ValidasiIzin() {
     const [toast, setToast] = useState(null);
     const [confirmModal, setConfirmModal] = useState(null);
 
-    // Admin only guard
-    if (user?.role !== 'admin') {
-        return (
-            <Layout title="Validasi Izin">
-                <div className="access-denied">
-                    <AlertCircle size={48} />
-                    <h3>Akses Ditolak</h3>
-                    <p>Halaman ini hanya untuk Admin.</p>
-                </div>
-            </Layout>
-        );
-    }
+    const showToast = (msg, type = 'success') => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 3000);
+    };
 
-    // ── Fetch dari backend ────────────────────────────────
     const fetchIzin = async () => {
         setLoading(true);
         try {
@@ -55,12 +46,24 @@ export default function ValidasiIzin() {
         }
     };
 
-    useEffect(() => { fetchIzin(); }, []);
+    useEffect(() => { 
+        if (user?.role === 'admin') {
+            fetchIzin(); 
+        }
+    }, [user?.role]);
 
-    const showToast = (msg, type = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3000);
-    };
+    // Admin only guard
+    if (user?.role !== 'admin') {
+        return (
+            <Layout title="Validasi Izin">
+                <div className="access-denied">
+                    <AlertCircle size={48} />
+                    <h3>Akses Ditolak</h3>
+                    <p>Halaman ini hanya untuk Admin.</p>
+                </div>
+            </Layout>
+        );
+    }
 
     // ── Approve / Reject via backend ──────────────────────
     const doAction = async (id, action) => {

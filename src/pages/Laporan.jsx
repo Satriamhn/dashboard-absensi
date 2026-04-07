@@ -23,19 +23,6 @@ export default function Laporan() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    if (user?.role !== 'admin') {
-        return (
-            <Layout title="Laporan">
-                <div className="access-denied">
-                    <AlertCircle size={48} />
-                    <h3>Akses Ditolak</h3>
-                    <p>Halaman ini hanya untuk Admin.</p>
-                </div>
-            </Layout>
-        );
-    }
-
-    // ── Fetch semua data laporan dari backend ─────────────
     const fetchAll = async (showRefresh = false) => {
         if (showRefresh) setRefreshing(true);
         else setLoading(true);
@@ -58,7 +45,23 @@ export default function Laporan() {
         }
     };
 
-    useEffect(() => { fetchAll(); }, []);
+    useEffect(() => { 
+        if (user?.role === 'admin') {
+            fetchAll(); 
+        }
+    }, [user?.role]);
+
+    if (user?.role !== 'admin') {
+        return (
+            <Layout title="Laporan">
+                <div className="access-denied">
+                    <AlertCircle size={48} />
+                    <h3>Akses Ditolak</h3>
+                    <p>Halaman ini hanya untuk Admin.</p>
+                </div>
+            </Layout>
+        );
+    }
 
     // ── Pie data dari rekap harian ────────────────────────
     const pieData = summary ? [

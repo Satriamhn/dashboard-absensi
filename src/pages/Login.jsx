@@ -310,26 +310,7 @@ export default function Login() {
                     </form>
                 )}
 
-                {/* Demo Accounts — hanya di mode login */}
-                {mode === 'login' && (
-                    <div className="login-demo">
-                        <p className="demo-title">Akun Demo:</p>
-                        <div className="demo-accounts">
-                            <button
-                                className="demo-chip"
-                                onClick={() => { setLoginEmail('admin@absensi.com'); setLoginPassword('admin123'); }}
-                            >
-                                👑 Admin
-                            </button>
-                            <button
-                                className="demo-chip"
-                                onClick={() => { setLoginEmail('budi@absensi.com'); setLoginPassword('admin123'); }}
-                            >
-                                👤 Pegawai
-                            </button>
-                        </div>
-                    </div>
-                )}
+
             </div>
         </div>
     );
